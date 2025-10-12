@@ -92,7 +92,6 @@ You can use:
 - ${githubDb}.comments: Comments on issues/PRs
 - ${githubDb}.discussions: GitHub discussions
 - ${githubDb}.releases: Release information
-- ${githubDb}.files: Repository files
 
 Answer questions concisely and accurately in markdown.
 `,

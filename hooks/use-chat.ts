@@ -21,7 +21,7 @@ export const useChat = () => {
     (message: Omit<Message, "id" | "timestamp">) => {
       const newMessage: Message = {
         ...message,
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, newMessage]);
