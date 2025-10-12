@@ -8,11 +8,11 @@ export function AskoraIcon({ className }: { className?: string }) {
       style={
         {
           // Fallbacks for CSS variables if not set
-          "--primary": "264 100% 70%",
-          "--secondary": "330 100% 75%",
-          "--accent": "140 100% 75%",
-          "--background": "264 10% 13%",
-          "--chart-3": "60 100% 80%",
+          '--primary': '264 100% 70%',
+          '--secondary': '330 100% 75%',
+          '--accent': '140 100% 75%',
+          '--background': '264 10% 13%',
+          '--chart-3': '60 100% 80%',
         } as React.CSSProperties
       }
     >

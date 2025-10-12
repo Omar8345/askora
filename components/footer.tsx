@@ -1,4 +1,4 @@
-import { Github, Heart, Mail, Star } from "lucide-react";
+import { Github, Heart, Mail, Star } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -9,7 +9,7 @@ export function Footer() {
         <div className="absolute top-0 left-1/3 w-64 h-64 bg-[#7c3aed]/4 rounded-full blur-3xl animate-pulse"></div>
         <div
           className="absolute bottom-0 right-1/3 w-80 h-80 bg-[#1A8596]/5 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
+          style={{ animationDelay: '2s' }}
         ></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-[#f472b6]/3 to-[#1A8596]/3 rounded-full blur-3xl opacity-40"></div>
         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background/20 to-transparent"></div>
@@ -34,10 +34,9 @@ export function Footer() {
 
               <div className="space-y-6">
                 <p className="text-base leading-relaxed text-muted-foreground max-w-xl">
-                  Transforming how developers contribute to open source. Our
-                  AI-powered platform makes complex repositories accessible,
-                  turning barriers into bridges for collaboration and
-                  innovation.
+                  Transforming how developers contribute to open source. Our AI-powered platform
+                  makes complex repositories accessible, turning barriers into bridges for
+                  collaboration and innovation.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4">
@@ -54,9 +53,7 @@ export function Footer() {
 
                   <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/20 border border-border/30">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-muted-foreground font-medium">
-                      Open Source
-                    </span>
+                    <span className="text-sm text-muted-foreground font-medium">Open Source</span>
                   </div>
                 </div>
               </div>
@@ -91,16 +88,14 @@ export function Footer() {
                     <span className="text-sm font-medium text-foreground group-hover:text-[#1A8596] transition-colors duration-300">
                       hello@askora.dev
                     </span>
-                    <p className="text-xs text-muted-foreground">
-                      Drop us a line
-                    </p>
+                    <p className="text-xs text-muted-foreground">Drop us a line</p>
                   </div>
                 </a>
 
                 <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-[#1A8596]/5 border border-primary/10">
                   <p className="text-xs text-muted-foreground/80 leading-relaxed">
-                    💡 <strong>Contributing?</strong> Check our GitHub issues or
-                    reach out for guidance on getting started.
+                    💡 <strong>Contributing?</strong> Check our GitHub issues or reach out for
+                    guidance on getting started.
                   </p>
                 </div>
               </div>
@@ -113,8 +108,7 @@ export function Footer() {
               {/* Copyright */}
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <p className="flex items-center gap-2">
-                  Made with{" "}
-                  <Heart className="h-4 w-4 fill-red-500 text-red-500 animate-pulse" />
+                  Made with <Heart className="h-4 w-4 fill-red-500 text-red-500 animate-pulse" />
                   by developers for developers
                 </p>
               </div>
@@ -126,9 +120,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="group inline-flex items-center gap-3 px-4 py-2 rounded-full bg-transparent hover:bg-[#1A8596]/10 text-sm text-[#1A8596] transition-all duration-500 hover:scale-105 relative overflow-hidden border border-[#1A8596]/30"
               >
-                <span className="relative z-10 text-[#1A8596] font-semibold">
-                  Powered by
-                </span>
+                <span className="relative z-10 text-[#1A8596] font-semibold">Powered by</span>
                 <img
                   src="/mindsdb-logo-horizontal-dark.svg"
                   alt="MindsDB Logo"

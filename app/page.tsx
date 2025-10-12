@@ -1,12 +1,12 @@
-"use client";
-import { Footer } from "@/components/footer";
-import { AskoraIcon } from "@/components/askora-icon";
-import { Github } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+'use client';
+import { Footer } from '@/components/footer';
+import { AskoraIcon } from '@/components/askora-icon';
+import { Github } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Home() {
-  const [repoUrl, setRepoUrl] = useState("");
+  const [repoUrl, setRepoUrl] = useState('');
   const router = useRouter();
 
   interface FormSubmitEvent extends React.FormEvent<HTMLFormElement> {}
@@ -33,41 +33,37 @@ export default function Home() {
           <div className="absolute left-1/4 top-20 h-64 w-64 rounded-full bg-[#7c3aed]/10 blur-3xl animate-pulse"></div>
           <div
             className="absolute right-1/4 top-40 h-80 w-80 rounded-full bg-[#1A8596]/10 blur-3xl animate-pulse"
-            style={{ animationDelay: "1s" }}
+            style={{ animationDelay: '1s' }}
           />
           <div
             className="absolute left-1/3 bottom-20 h-72 w-72 rounded-full bg-[#f472b6]/8 blur-3xl animate-pulse"
-            style={{ animationDelay: "2s" }}
+            style={{ animationDelay: '2s' }}
           />
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-primary/3 to-[#1A8596]/3 rounded-full blur-3xl opacity-40"></div>
         </div>
 
         <div className="mb-10 flex items-center justify-center gap-3">
           <AskoraIcon className="h-16 w-16" />
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            Askora
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Askora</h1>
         </div>
 
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-foreground md:text-6xl lg:text-7xl">
-            Askora —{" "}
+            Askora —{' '}
             <span
               className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] bg-clip-text text-transparent animate-gradient-x"
               style={{
-                backgroundImage:
-                  "linear-gradient(90deg, #7c3aed 0%, #f472b6 50%, #1A8596 100%)",
-                backgroundSize: "200% 200%",
-                backgroundPosition: "0% 50%",
-                animation: "gradient-x 4s ease-in-out infinite",
+                backgroundImage: 'linear-gradient(90deg, #7c3aed 0%, #f472b6 50%, #1A8596 100%)',
+                backgroundSize: '200% 200%',
+                backgroundPosition: '0% 50%',
+                animation: 'gradient-x 4s ease-in-out infinite',
               }}
             >
               Your Code, Answered
             </span>
           </h2>
           <p className="mb-8 text-lg text-muted-foreground">
-            Paste a GitHub repository URL below and start chatting with your
-            codebase.
+            Paste a GitHub repository URL below and start chatting with your codebase.
           </p>
 
           <form
@@ -86,9 +82,9 @@ export default function Home() {
               type="submit"
               className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white font-semibold hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
               style={{
-                backgroundSize: "200% 200%",
-                backgroundPosition: "0% 50%",
-                animation: "gradient-x 4s ease-in-out infinite",
+                backgroundSize: '200% 200%',
+                backgroundPosition: '0% 50%',
+                animation: 'gradient-x 4s ease-in-out infinite',
               }}
             >
               Digest & Chat
