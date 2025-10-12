@@ -17,11 +17,11 @@ jobs:
         with:
           node-version: '20'
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
       - name: Run ESLint
-        run: pnpm lint
+        run: npm lint
       - name: Run Prettier
-        run: pnpm format --check
+        run: npm format --check
   test:
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +31,6 @@ jobs:
         with:
           node-version: '20'
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
       - name: Run tests
-        run: pnpm test
+        run: npm test
