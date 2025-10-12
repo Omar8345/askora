@@ -53,13 +53,24 @@ export default function Home() {
 
   const extractRepoPath = (url: string): string | null => {
     try {
-      if (url.includes("github.com")) {
-        const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
-        return match ? match[1] : null;
-      } else if (url.match(/^[^\/]+\/[^\/]+$/)) {
-        return url;
+      // Try to parse as a URL and check host is exactly github.com
+      let repoPath = null;
+      try {
+        const parsedUrl = new URL(url);
+        if (parsedUrl.host === "github.com") {
+          // Extract /owner/repo from the pathname
+          const pathMatch = parsedUrl.pathname.match(/^\/([^\/]+\/[^\/]+)/);
+          if (pathMatch) {
+            repoPath = pathMatch[1];
+          }
+        }
+      } catch {
+        // If URL parsing fails, fall back to direct owner/repo form
+        if (url.match(/^[^\/]+\/[^\/]+$/)) {
+          repoPath = url;
+        }
       }
-      return null;
+      return repoPath;
     } catch {
       return null;
     }
