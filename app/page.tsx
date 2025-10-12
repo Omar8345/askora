@@ -1,7 +1,6 @@
 "use client";
 import { Footer } from "@/components/footer";
 import { AskoraIcon } from "@/components/askora-icon";
-import { Github } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -11,10 +10,58 @@ export default function Home() {
 
   interface FormSubmitEvent extends React.FormEvent<HTMLFormElement> {}
 
-  const handleSubmit = (e: FormSubmitEvent) => {
+  const handleSubmit = async (e: FormSubmitEvent) => {
     e.preventDefault();
     if (repoUrl.trim()) {
-      router.push(`/onboarding?repo=${encodeURIComponent(repoUrl)}`);
+      const isValid = await validateGitHubRepo(repoUrl);
+      if (isValid) {
+        router.push(`/chat?repo=${encodeURIComponent(repoUrl)}`);
+      }
+    }
+  };
+
+  const validateGitHubRepo = async (url: string): Promise<boolean> => {
+    try {
+      const repoPath = extractRepoPath(url);
+      if (!repoPath) {
+        alert(
+          "Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)"
+        );
+        return false;
+      }
+
+      const response = await fetch(`https://api.github.com/repos/${repoPath}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert(
+            "Repository not found. Please check if the URL is correct and the repository is public."
+          );
+        } else {
+          alert("Error validating repository. Please try again.");
+        }
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      alert(
+        "Error validating repository. Please check your internet connection and try again."
+      );
+      return false;
+    }
+  };
+
+  const extractRepoPath = (url: string): string | null => {
+    try {
+      if (url.includes("github.com")) {
+        const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
+        return match ? match[1] : null;
+      } else if (url.match(/^[^\/]+\/[^\/]+$/)) {
+        return url;
+      }
+      return null;
+    } catch {
+      return null;
     }
   };
 
