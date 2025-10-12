@@ -86,10 +86,23 @@ export default function ChatPage({}: ChatPageProps) {
 
   const extractRepoPath = (url: string): string | null => {
     try {
-      if (url.includes("github.com")) {
-        const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
-        return match ? match[1] : null;
+      // Try to parse as a standard URL
+      let urlObj;
+      try {
+        urlObj = new URL(url);
+      } catch {
+        urlObj = null;
+      }
+
+      if (
+        urlObj &&
+        (urlObj.hostname === "github.com" || urlObj.hostname === "www.github.com")
+      ) {
+        // Path should be like /owner/repo or /owner/repo/...
+        const repoPathMatch = urlObj.pathname.match(/^\/([^\/]+\/[^\/]+)(\/|$)/);
+        return repoPathMatch ? repoPathMatch[1] : null;
       } else if (url.match(/^[^\/]+\/[^\/]+$/)) {
+        // Accept plain user/repo as fallback
         return url;
       }
       return null;
