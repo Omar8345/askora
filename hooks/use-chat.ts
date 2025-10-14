@@ -13,16 +13,8 @@ export interface ChatState {
   error: string | null;
 }
 
-// Mock responses for demo mode
-const DEMO_RESPONSES = [
-  "This is a **demo repository** for testing purposes. In a real scenario, I would analyze the actual repository structure and provide insights about the codebase.",
-  "Here's what I can help you with in **demo mode**:\n\n• Code structure and architecture analysis\n• Functions, classes, and modules exploration\n• Issues and pull requests review\n• Documentation and README understanding\n• Dependencies and configurations overview\n• Best practices and improvement suggestions\n\nFeel free to ask any questions!",
-  "In **demo mode**, I'm simulating responses. This feature is perfect for:\n\n• Quick testing without repository setup\n• Demonstrating Askora's capabilities\n• UI and interaction testing\n• Onboarding new users\n\nTry asking different questions to see how the interface responds!",
-  "Since this is a **demo repository**, I can show you example responses. In production, I would:\n\n```typescript\n// Analyze actual code like this\nfunction analyzeRepository(repo: string) {\n  const structure = parseCodebase(repo);\n  const insights = generateInsights(structure);\n  return insights;\n}\n```\n\nThis demonstrates the type of code analysis I can provide!",
-  "Great question! In a real repository analysis, I would dive deep into the specific files and provide detailed explanations. For now, I'm in **demo mode**, so I'm showing you sample responses to give you a feel for how Askora works.",
-];
-
-let demoResponseIndex = 0;
+// Mock response for demo mode
+const DEMO_RESPONSE = "This is a **demo repository** for testing purposes. In a real scenario, I would analyze the actual repository structure and provide insights about the codebase.";
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,15 +41,12 @@ export const useChat = () => {
       setIsLoading(true);
 
       try {
-        // Handle demo mode with mock responses
+        // Handle demo mode with mock response
         if (isDemoMode) {
           // Simulate a brief delay for realism
           await new Promise((resolve) => setTimeout(resolve, 800));
           
-          const mockResponse = DEMO_RESPONSES[demoResponseIndex % DEMO_RESPONSES.length];
-          demoResponseIndex++;
-          
-          addMessage({ role: "assistant", content: mockResponse });
+          addMessage({ role: "assistant", content: DEMO_RESPONSE });
           return;
         }
 
