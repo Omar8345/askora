@@ -294,7 +294,6 @@ export default function ChatPage({}: ChatPageProps) {
                   dangerouslySetInnerHTML={{
                     __html: formatMessage(message.content),
                   }}
-                  style={{ WebkitUserSelect: "text", userSelect: "text" }}
                 />
                 <div
                   className={`text-xs mt-2 ${
