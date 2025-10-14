@@ -241,7 +241,7 @@ export default function ChatPage({}: ChatPageProps) {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-background/98 to-card/30 flex flex-col">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-background/98 to-card/30 flex flex-col" style={{ WebkitUserSelect: "none", userSelect: "none" }}>
       {/* Navbar */}
       <nav className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -287,12 +287,14 @@ export default function ChatPage({}: ChatPageProps) {
                     ? "bg-[#7c3aed] text-white ml-auto"
                     : "bg-card border border-border/50"
                 }`}
+                style={{ WebkitUserSelect: "text", userSelect: "text" }}
               >
                 <div
                   className="text-sm leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: formatMessage(message.content),
                   }}
+                  style={{ WebkitUserSelect: "text", userSelect: "text" }}
                 />
                 <div
                   className={`text-xs mt-2 ${
