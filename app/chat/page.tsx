@@ -397,7 +397,7 @@ export default function ChatPage({}: ChatPageProps) {
               type="submit"
               disabled={!input.trim() || isLoading}
               size="lg"
-              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer self-end min-h-[48px] flex items-center justify-center rounded-lg border border-transparent"
+              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer min-h-[48px] h-[48px] flex items-center justify-center rounded-lg border border-transparent flex-shrink-0"
             >
               <Send className="h-4 w-4" />
             </Button>
