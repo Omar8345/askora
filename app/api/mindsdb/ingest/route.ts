@@ -72,7 +72,7 @@ async function setupRepository(repository: string) {
         name: agentName,
         model: {
           provider: "openai",
-          model_name: "gpt-5",
+          model_name: "gpt-4.1",
           api_key: openaiApiKey,
         },
         data: {
