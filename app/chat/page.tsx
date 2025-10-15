@@ -2,18 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Send,
-  Loader2,
-  Bot,
-  User,
-  AlertCircle,
-} from "lucide-react";
+import { ArrowLeft, Loader2, Bot, User, AlertCircle } from "lucide-react";
 import { AskoraIcon } from "@/components/askora-icon";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useChat } from "@/hooks/use-chat";
+import ChatInput from "@/components/chat-input";
 
 interface ChatPageProps {}
 
@@ -27,7 +21,6 @@ export default function ChatPage({}: ChatPageProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const { messages, isLoading, sendMessage, initializeChat } = useChat();
 
@@ -45,12 +38,6 @@ export default function ChatPage({}: ChatPageProps) {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    if (isInitialized && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isInitialized]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -60,14 +47,12 @@ export default function ChatPage({}: ChatPageProps) {
     setDigestError(null);
 
     try {
-      // Check if we're in demo mode
       const lowerRepo = repoUrl.toLowerCase();
       const demoMode = lowerRepo === "demo" || lowerRepo === "testing";
       setIsDemoMode(demoMode);
 
       if (demoMode) {
-        // In demo mode, skip API calls and just initialize
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate loading
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsInitialized(true);
         initializeChat(repoUrl, true);
         setIsDigesting(false);
@@ -101,7 +86,6 @@ export default function ChatPage({}: ChatPageProps) {
 
   const extractRepoPath = (url: string): string | null => {
     try {
-      // Try to parse as a standard URL
       let urlObj;
       try {
         urlObj = new URL(url);
@@ -113,11 +97,9 @@ export default function ChatPage({}: ChatPageProps) {
         urlObj &&
         (urlObj.hostname === "github.com" || urlObj.hostname === "www.github.com")
       ) {
-        // Path should be like /owner/repo or /owner/repo/...
         const repoPathMatch = urlObj.pathname.match(/^\/([^\/]+\/[^\/]+)(\/|$)/);
         return repoPathMatch ? repoPathMatch[1] : null;
       } else if (url.match(/^[^\/]+\/[^\/]+$/)) {
-        // Accept plain user/repo as fallback
         return url;
       }
       return null;
@@ -143,8 +125,7 @@ export default function ChatPage({}: ChatPageProps) {
     return await response.json();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendCurrent = async () => {
     if (!input.trim() || isLoading) return;
 
     if (isDemoMode) {
@@ -165,7 +146,9 @@ export default function ChatPage({}: ChatPageProps) {
       content
         .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
           const language = lang || "text";
-          return `<pre class="bg-muted/50 border border-border rounded-md p-3 my-2 overflow-x-auto"><code class="text-sm font-mono language-${language}">${code.trim()}</code></pre>`;
+          return `<pre class="bg-muted/50 border border-border rounded-md p-3 my-2 overflow-x-auto"><code class="text-sm font-mono language-${language}">${String(
+            code
+          ).trim()}</code></pre>`;
         })
         .replace(
           /`([^`]+)`/g,
@@ -287,7 +270,7 @@ export default function ChatPage({}: ChatPageProps) {
       </nav>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 pb-28">
         <div className="max-w-4xl mx-auto space-y-6">
           {messages.map((message) => (
             <div
@@ -355,57 +338,17 @@ export default function ChatPage({}: ChatPageProps) {
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-border/50 bg-card/50 backdrop-blur-sm p-4">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef as any}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e as any);
-                  }
-                }}
-                placeholder="Ask me anything about this repository..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#1A8596] transition resize-none min-h-[48px] max-h-32 scrollbar-hide"
-                disabled={isLoading}
-                rows={1}
-                style={{
-                  height: "auto",
-                  minHeight: "48px",
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height =
-                    Math.min(target.scrollHeight, 128) + "px";
-                }}
-              />
-              {isLoading && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            <Button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              size="lg"
-              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer self-end min-h-[48px] flex items-center justify-center rounded-lg border border-transparent"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="text-xs text-muted-foreground mt-2 text-center">
-            Press Enter to send, Shift+Enter for new line
-          </div>
-        </form>
+      {/* Input Area - sticky bottom */}
+      <div className="sticky bottom-0 inset-x-0 border-t border-border/50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+        <div className="max-w-4xl mx-auto">
+          <ChatInput
+            value={input}
+            onChange={setInput}
+            onSubmit={sendCurrent}
+            placeholder="Ask me anything about this repository..."
+            isLoading={isLoading}
+          />
+        </div>
       </div>
     </div>
   );
