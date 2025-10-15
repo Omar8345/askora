@@ -1,0 +1,38 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main hexagon shape -->
+  <path
+    d="M50 10 L80 30 L80 60 L50 80 L20 60 L20 30 Z"
+    fill="url(#iconGradient)"
+    stroke="url(#strokeGradient)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Inner path representing onboarding flow -->
+  <path
+    d="M50 25 L50 45 M35 45 L50 45 L65 45 M50 45 L50 65"
+    stroke="#1f1729"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- AI sparkle dots -->
+  <circle cx="50" cy="25" r="4" fill="#1f1729" />
+  <circle cx="35" cy="45" r="4" fill="#1f1729" />
+  <circle cx="65" cy="45" r="4" fill="#1f1729" />
+  <circle cx="50" cy="65" r="4" fill="#1f1729" />
+
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9f7aea" />
+      <stop offset="50%" stop-color="#f472b6" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+    <linearGradient id="strokeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="100%" stop-color="#9f7aea" />
+    </linearGradient>
+  </defs>
+</svg>

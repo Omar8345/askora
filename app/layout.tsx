@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description:
     "Personalized AI-powered onboarding for open source repos. Get started with any GitHub repository instantly.",
   icons: {
-    icon: [{ url: "/favicon.jpg", type: "image/svg+xml" }],
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
 };
 
