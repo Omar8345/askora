@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   description:
     "Personalized AI-powered onboarding for open source repos. Get started with any GitHub repository instantly.",
   icons: {
-    icon: [{ url: "/favicon.jpg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "Askora — Your Code, Answered",
