@@ -7,11 +7,21 @@ import "./globals.css";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Askora — Your Code, Answered",
+  title: "Askora",
   description:
     "Personalized AI-powered onboarding for open source repos. Get started with any GitHub repository instantly.",
   icons: {
     icon: [{ url: "/favicon.jpg", type: "image/svg+xml" }],
+  },
+  openGraph: {
+    title: "Askora — Your Code, Answered",
+    description:
+      "Personalized AI-powered onboarding for open source repos. Get started with any GitHub repository instantly.",
+  },
+  twitter: {
+    title: "Askora — Your Code, Answered",
+    description:
+      "Personalized AI-powered onboarding for open source repos. Get started with any GitHub repository instantly.",
   },
 };
 
