@@ -358,8 +358,8 @@ export default function ChatPage({}: ChatPageProps) {
       {/* Input Area */}
       <div className="border-t border-border/50 bg-card/50 backdrop-blur-sm p-4">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 relative flex items-end">
+          <div className="flex gap-3 items-center">
+            <div className="flex-1 relative">
               <textarea
                 ref={inputRef as any}
                 value={input}
@@ -371,7 +371,7 @@ export default function ChatPage({}: ChatPageProps) {
                   }
                 }}
                 placeholder="Ask me anything about this repository..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#1A8596] transition resize-none min-h-[48px] max-h-32 scrollbar-hide"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-[#1A8596] transition resize-none min-h-[48px] max-h-32 scrollbar-hide"
                 disabled={isLoading}
                 rows={1}
                 style={{
