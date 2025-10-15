@@ -25,6 +25,7 @@ export default function ChatPage({}: ChatPageProps) {
   const [isDigesting, setIsDigesting] = useState(true);
   const [digestError, setDigestError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +60,20 @@ export default function ChatPage({}: ChatPageProps) {
     setDigestError(null);
 
     try {
+      // Check if we're in demo mode
+      const lowerRepo = repoUrl.toLowerCase();
+      const demoMode = lowerRepo === "demo" || lowerRepo === "testing";
+      setIsDemoMode(demoMode);
+
+      if (demoMode) {
+        // In demo mode, skip API calls and just initialize
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate loading
+        setIsInitialized(true);
+        initializeChat(repoUrl, true);
+        setIsDigesting(false);
+        return;
+      }
+
       const repoPath = extractRepoPath(repoUrl);
       if (!repoPath) {
         throw new Error("Invalid GitHub repository URL");
@@ -132,10 +147,16 @@ export default function ChatPage({}: ChatPageProps) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    if (isDemoMode) {
+      await sendMessage(input.trim(), repo, true);
+      setInput("");
+      return;
+    }
+
     const repoPath = extractRepoPath(repo);
     if (!repoPath) return;
 
-    await sendMessage(input.trim(), repoPath);
+    await sendMessage(input.trim(), repoPath, false);
     setInput("");
   };
 
@@ -258,7 +279,7 @@ export default function ChatPage({}: ChatPageProps) {
             <div className="flex flex-col">
               <span className="font-semibold text-foreground">Askora</span>
               <span className="text-xs text-muted-foreground font-mono">
-                {extractRepoPath(repo)}
+                {isDemoMode ? `${repo} (Demo Mode)` : extractRepoPath(repo)}
               </span>
             </div>
           </div>

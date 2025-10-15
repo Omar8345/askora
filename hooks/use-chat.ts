@@ -13,6 +13,9 @@ export interface ChatState {
   error: string | null;
 }
 
+// Mock response for demo mode
+const DEMO_RESPONSE = "This is a **demo repository** for testing purposes. In a real scenario, I would analyze the actual repository structure and provide insights about the codebase.";
+
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,13 +34,22 @@ export const useChat = () => {
   );
 
   const sendMessage = useCallback(
-    async (content: string, repository: string) => {
+    async (content: string, repository: string, isDemoMode: boolean = false) => {
       if (!content.trim() || isLoading) return;
 
       addMessage({ role: "user", content: content.trim() });
       setIsLoading(true);
 
       try {
+        // Handle demo mode with mock response
+        if (isDemoMode) {
+          // Simulate a brief delay for realism
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          
+          addMessage({ role: "assistant", content: DEMO_RESPONSE });
+          return;
+        }
+
         const conversationHistory: Array<{ question: string; answer: string }> =
           [];
         const filteredMessages = messages.filter((msg) => msg.id !== "welcome"); // Exclude welcome message
@@ -86,12 +98,9 @@ export const useChat = () => {
     [addMessage, isLoading, messages]
   );
 
-  const initializeChat = useCallback((repository: string) => {
-    setMessages([
-      {
-        id: "welcome",
-        role: "assistant",
-        content: `Hello! I'm **Askora**, your AI-powered repository analysis assistant. I've successfully analyzed and ingested the **\`${repository}\`** repository. I can help you understand:
+  const initializeChat = useCallback((repository: string, isDemoMode: boolean = false) => {
+    const welcomeMessage = isDemoMode
+      ? `Hello! I'm **Askora**, your AI-powered repository analysis assistant. You're currently in **demo mode** with the **\`${repository}\`** repository. This is a testing environment with mock responses. I can help you understand:
 
 • Code structure and architecture
 • Functions, classes, and modules
@@ -100,7 +109,23 @@ export const useChat = () => {
 • Dependencies and configurations
 • Best practices and potential improvements
 
-What would you like to explore about this repository?`,
+What would you like to explore? (Note: Responses are simulated for demonstration purposes)`
+      : `Hello! I'm **Askora**, your AI-powered repository analysis assistant. I've successfully analyzed and ingested the **\`${repository}\`** repository. I can help you understand:
+
+• Code structure and architecture
+• Functions, classes, and modules
+• Issues and pull requests
+• Documentation and README files
+• Dependencies and configurations
+• Best practices and potential improvements
+
+What would you like to explore about this repository?`;
+
+    setMessages([
+      {
+        id: "welcome",
+        role: "assistant",
+        content: welcomeMessage,
         timestamp: new Date(),
       },
     ]);
