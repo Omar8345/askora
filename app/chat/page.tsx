@@ -358,48 +358,45 @@ export default function ChatPage({}: ChatPageProps) {
       {/* Input Area */}
       <div className="border-t border-border/50 bg-card/50 backdrop-blur-sm p-4">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef as any}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e as any);
-                  }
-                }}
-                placeholder="Ask me anything about this repository..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#1A8596] transition resize-none min-h-[48px] max-h-32 scrollbar-hide"
-                disabled={isLoading}
-                rows={1}
-                style={{
-                  height: "auto",
-                  minHeight: "48px",
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height =
-                    Math.min(target.scrollHeight, 128) + "px";
-                }}
-              />
-              {isLoading && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              )}
-            </div>
+          <div className="relative">
+            <textarea
+              ref={inputRef as any}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e as any);
+                }
+              }}
+              placeholder="Ask me anything about this repository..."
+              className="w-full px-4 py-3 pr-14 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#1A8596] transition resize-none min-h-[52px] max-h-32 scrollbar-hide"
+              disabled={isLoading}
+              rows={1}
+              style={{
+                height: "auto",
+                minHeight: "52px",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = "auto";
+                target.style.height =
+                  Math.min(target.scrollHeight, 128) + "px";
+              }}
+            />
             <Button
               type="submit"
               disabled={!input.trim() || isLoading}
-              size="lg"
-              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer self-end min-h-[48px] flex items-center justify-center rounded-lg border border-transparent"
+              size="icon"
+              className="absolute right-2 bottom-2 bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer h-9 w-9 rounded-md"
             >
-              <Send className="h-4 w-4" />
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
           <div className="text-xs text-muted-foreground mt-2 text-center">
