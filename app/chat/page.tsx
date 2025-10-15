@@ -359,7 +359,7 @@ export default function ChatPage({}: ChatPageProps) {
       <div className="border-t border-border/50 bg-card/50 backdrop-blur-sm p-4">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
           <div className="flex gap-3 items-end">
-            <div className="flex-1 relative leading-[0]">
+            <div className="flex-1 relative flex items-end">
               <textarea
                 ref={inputRef as any}
                 value={input}
@@ -396,7 +396,7 @@ export default function ChatPage({}: ChatPageProps) {
             <Button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer h-12 w-12 flex items-center justify-center rounded-lg border border-transparent flex-shrink-0"
+              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer h-[50px] w-[50px] flex items-center justify-center rounded-lg border border-transparent flex-shrink-0"
             >
               <Send className="h-4 w-4" />
             </Button>
