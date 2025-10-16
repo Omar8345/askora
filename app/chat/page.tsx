@@ -208,14 +208,17 @@ export default function ChatPage({}: ChatPageProps) {
           <div className="space-y-4">
             <Loader2 className="h-12 w-12 animate-spin mx-auto text-[#7c3aed]" />
             <h2 className="text-xl font-semibold text-foreground">
-              Digesting Repository
+              Analyzing Repository
             </h2>
             <p className="text-muted-foreground max-w-md">
-              I'm analyzing and ingesting{" "}
+              I'm analyzing and indexing{" "}
               <span className="font-mono text-foreground">
                 {extractRepoPath(repo)}
               </span>{" "}
-              into the knowledge base. This may take a few moments...
+              into my knowledge base.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-md">
+              This process typically takes 2-3 minutes. I'm reading the codebase, documentation, issues, and pull requests to provide you with accurate, context-aware answers.
             </p>
           </div>
         </div>

@@ -86,10 +86,13 @@ export const useChat = () => {
         const data = await response.json();
         addMessage({ role: "assistant", content: data.response });
       } catch (err) {
+        const errorMessage = err instanceof Error 
+          ? err.message 
+          : "I encountered an unexpected error while processing your request.";
+        
         addMessage({
           role: "assistant",
-          content:
-            "I'm sorry, I encountered an error while processing your request. Please try again.",
+          content: `⚠️ **Error**: ${errorMessage}\n\nPlease try again or rephrase your question.`,
         });
       } finally {
         setIsLoading(false);
@@ -110,16 +113,22 @@ export const useChat = () => {
 • Best practices and potential improvements
 
 What would you like to explore? (Note: Responses are simulated for demonstration purposes)`
-      : `Hello! I'm **Askora**, your AI-powered repository analysis assistant. I've successfully analyzed and ingested the **\`${repository}\`** repository. I can help you understand:
+      : `Hello! I'm **Askora**, your AI-powered repository analysis assistant. I've successfully analyzed and ingested the **\`${repository}\`** repository.
 
-• Code structure and architecture
-• Functions, classes, and modules
-• Issues and pull requests
-• Documentation and README files
-• Dependencies and configurations
-• Best practices and potential improvements
+**I can help you with:**
+• Understanding code structure, functions, and classes
+• Explaining specific files or components
+• Analyzing issues, pull requests, and commits
+• Reviewing documentation and README files
+• Examining dependencies and configurations
+• Identifying patterns and suggesting improvements
 
-What would you like to explore about this repository?`;
+**💡 Tips for better responses:**
+• Be specific: "What does the \`main\` function in \`app.py\` do?" works better than "Tell me about the code"
+• Ask one thing at a time: Break complex questions into smaller parts
+• Reference files or features: "How does authentication work?" or "Explain the API routes"
+
+What would you like to explore first?`;
 
     setMessages([
       {

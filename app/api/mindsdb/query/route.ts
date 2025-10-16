@@ -49,15 +49,22 @@ async function queryKnowledgeBase(
   const mindsdbUrl = process.env.MINDSDB_URL || "http://127.0.0.1:47334";
   const mindsdbProject = process.env.MINDSDB_PROJECT || "mindsdb";
   const agentName = `agent_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+  
+  // Limit conversation history to last 5 exchanges to avoid context overflow
+  const recentHistory = conversationHistory.slice(-5);
 
   try {
     const messages = [
-      ...conversationHistory,
+      ...recentHistory,
       {
         question: query,
         answer: "",
       },
     ];
+
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     const response = await fetch(
       `${mindsdbUrl}/api/projects/${mindsdbProject}/agents/${agentName}/completions`,
@@ -65,15 +72,24 @@ async function queryKnowledgeBase(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages }),
+        signal: controller.signal,
       }
     );
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.text();
 
       if (response.status === 404) {
         throw new Error(
-          `Agent ${agentName} does not exist. Please re-ingest the repository to create the agent.`
+          `Agent for repository "${repository}" does not exist. Please re-ingest the repository first.`
+        );
+      }
+
+      if (response.status === 500) {
+        throw new Error(
+          `The AI agent encountered an internal error. This may be temporary - please try again in a moment.`
         );
       }
 
@@ -82,28 +98,36 @@ async function queryKnowledgeBase(
 
     const data = await response.json();
 
+    // Try multiple response formats from MindsDB
     if (data && data.answer && data.answer.trim()) {
-      return data.answer;
+      return data.answer.trim();
     }
 
-    if (data.message) {
-      const response = data.message.content;
-      if (response && response.trim()) {
-        return response;
-      }
+    if (data.message && data.message.content && data.message.content.trim()) {
+      return data.message.content.trim();
+    }
+
+    if (data.content && data.content.trim()) {
+      return data.content.trim();
     }
 
     if (data.error) {
-      throw new Error(`MindsDB agent error: ${data.error}`);
+      throw new Error(`AI agent error: ${data.error}`);
     }
 
     throw new Error(
-      "The agent could not provide an answer at this time. This might happen if:\n• The knowledge base is still being processed\n• The repository content hasn't been fully indexed\n• Try asking a simpler or more specific question\n\nPlease wait a few minutes and try again, or re-ingest the repository."
+      "The AI agent could not generate a response. This might happen if:\n\n• The knowledge base is still being indexed (usually takes 2-3 minutes after ingestion)\n• The query is too broad or unclear - try being more specific\n• The repository data is not yet fully processed\n\n**Suggestions:**\n• Wait a few minutes and try again\n• Ask a more specific question (e.g., \"What does the main function do?\" instead of \"Tell me about the code\")\n• Re-ingest the repository if the issue persists"
     );
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("fetch")) {
       throw new Error(
-        "MindsDB server is not accessible. Please ensure MindsDB is running."
+        "Cannot connect to the AI service. Please ensure MindsDB server is running and accessible."
+      );
+    }
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "The request took too long to process. The repository might be very large or the question too complex. Try:\n• Breaking down your question into smaller parts\n• Asking about specific files or components\n• Waiting a moment and trying again"
       );
     }
 
