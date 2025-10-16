@@ -382,6 +382,7 @@ export default function ChatPage({}: ChatPageProps) {
                 className="flex-1 resize-none bg-transparent outline-none text-foreground text-base leading-6 px-0 py-0 scrollbar-hide"
                 disabled={isLoading}
                 rows={1}
+                placeholder="Ask me anything about this repository..."
                 style={{
                   height: "24px",
                   maxHeight: 240,
