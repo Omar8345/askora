@@ -52,63 +52,111 @@ async function queryKnowledgeBase(
     .replace(/[^a-zA-Z0-9_]/g, "_")
     .toLowerCase()}`;
 
-  try {
-    const messages = [
-      ...conversationHistory,
-      {
-        question: query,
-        answer: "",
-      },
-    ];
+  const maxRetries = 3;
+  let lastError: Error | null = null;
 
-    const response = await fetch(
-      `${mindsdbUrl}/api/projects/${mindsdbProject}/agents/${agentName}/completions`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
-      }
-    );
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const messages = [
+        ...conversationHistory,
+        {
+          question: query,
+          answer: "",
+        },
+      ];
 
-    if (!response.ok) {
-      const errorData = await response.text();
+      // Add timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
 
-      if (response.status === 404) {
+      const response = await fetch(
+        `${mindsdbUrl}/api/projects/${mindsdbProject}/agents/${agentName}/completions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+
+        if (response.status === 404) {
+          throw new Error(
+            `Agent '${agentName}' does not exist. Please ingest the repository first to create the agent.`
+          );
+        }
+
+        if (response.status === 500) {
+          throw new Error(
+            `Agent encountered an error. This may happen if the knowledge base is still processing. Please try again in a moment.`
+          );
+        }
+
         throw new Error(
-          `Agent ${agentName} does not exist. Please re-ingest the repository to create the agent.`
+          `Failed to query agent (${response.status}): ${errorData}`
         );
       }
 
-      throw new Error(`Failed to query agent: ${errorData}`);
-    }
+      const data = await response.json();
 
-    const data = await response.json();
-
-    if (data && data.answer && data.answer.trim()) {
-      return data.answer;
-    }
-
-    if (data.message) {
-      const response = data.message.content;
-      if (response && response.trim()) {
-        return response;
+      if (data && data.answer && data.answer.trim()) {
+        return data.answer;
       }
-    }
 
-    if (data.error) {
-      throw new Error(`MindsDB agent error: ${data.error}`);
-    }
+      if (data.message && data.message.content && data.message.content.trim()) {
+        return data.message.content;
+      }
 
-    throw new Error(
-      "The agent could not provide an answer at this time. This might happen if:\n• The knowledge base is still being processed\n• The repository content hasn't been fully indexed\n• Try asking a simpler or more specific question\n\nPlease wait a few minutes and try again, or re-ingest the repository."
-    );
-  } catch (error) {
-    if (error instanceof TypeError && error.message.includes("fetch")) {
+      if (data.error) {
+        throw new Error(`Agent error: ${data.error}`);
+      }
+
+      if (attempt < maxRetries - 1) {
+        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+
       throw new Error(
-        "MindsDB server is not accessible. Please ensure MindsDB is running."
+        "The agent could not provide an answer. This might happen if:\n• The knowledge base is still being processed\n• The repository content hasn't been fully indexed\n\nPlease wait a few minutes and try again, or re-ingest the repository."
       );
-    }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          throw new Error(
+            "Request timed out after 30 seconds. The agent may be processing a complex query. Please try again."
+          );
+        }
 
-    throw error;
+        if (error.message.includes("fetch") && error instanceof TypeError) {
+          throw new Error(
+            "Cannot connect to MindsDB server. Please ensure MindsDB is running."
+          );
+        }
+
+        if (
+          error.message.includes("does not exist") ||
+          error.message.includes("timed out")
+        ) {
+          throw error;
+        }
+
+        lastError = error;
+
+        if (attempt < maxRetries - 1) {
+          const delay = Math.pow(2, attempt) * 1000;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+      }
+
+      throw error;
+    }
   }
+
+  throw lastError || new Error("Failed to query agent after multiple attempts");
 }
