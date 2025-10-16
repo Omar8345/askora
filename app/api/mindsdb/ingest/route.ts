@@ -77,6 +77,17 @@ async function setupRepository(repository: string) {
         },
         data: {
           knowledge_bases: [`${mindsdbProject}.${kbName}`],
+          tables: [
+            `${githubDb}.pull_requests`,
+            `${githubDb}.issues`,
+            `${githubDb}.commits`,
+            `${githubDb}.branches`,
+            `${githubDb}.files`,
+            `${githubDb}.contributors`,
+            `${githubDb}.comments`,
+            `${githubDb}.discussions`,
+            `${githubDb}.releases`,
+          ],
         },
         prompt_template: `
 You are Askora (askora.dev), an assistant analyzing the GitHub repository "${repository}".
