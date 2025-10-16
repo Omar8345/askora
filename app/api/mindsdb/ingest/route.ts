@@ -39,46 +39,107 @@ async function setupRepository(repository: string) {
   const mindsdbUrl = process.env.MINDSDB_URL || "http://127.0.0.1:47334";
   const mindsdbProject = process.env.MINDSDB_PROJECT || "mindsdb";
 
-  const kbName = `kb_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
-  const githubDb = `github_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
-  const agentName = `agent_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+  const kbName = `kb_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
+  const githubDb = `github_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
+  const agentName = `agent_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
 
   if (!openaiApiKey) throw new Error("OPENAI_API_KEY required");
 
-  // 1. Create GitHub database connection
-  await fetch(`${mindsdbUrl}/api/sql/query`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `CREATE DATABASE ${githubDb} WITH ENGINE='github', PARAMETERS={"repository": "${repository}", "token": "${
-        process.env.GITHUB_TOKEN || ""
-      }"};`,
-    }),
-  });
+  try {
+    // 1. Create GitHub database connection
+    const dbResponse = await fetch(`${mindsdbUrl}/api/sql/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `CREATE DATABASE ${githubDb} WITH ENGINE='github', PARAMETERS={"repository": "${repository}"${
+          process.env.GITHUB_TOKEN
+            ? `, "token": "${process.env.GITHUB_TOKEN}"`
+            : ""
+        }};`,
+      }),
+    });
 
-  // 2. Create knowledge base for codebase
-  await fetch(`${mindsdbUrl}/api/projects/${mindsdbProject}/knowledge_bases`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ knowledge_base: { name: kbName } }),
-  });
+    if (!dbResponse.ok) {
+      const error = await dbResponse.text();
+      throw new Error(`Failed to create GitHub database: ${error}`);
+    }
 
-  // 3. Create agent with KB and cached GitHub tables
-  await fetch(`${mindsdbUrl}/api/projects/${mindsdbProject}/agents`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      agent: {
-        name: agentName,
-        model: {
-          provider: "openai",
-          model_name: "gpt-4.1",
-          api_key: openaiApiKey,
-        },
-        data: {
-          knowledge_bases: [`${mindsdbProject}.${kbName}`],
-        },
-        prompt_template: `
+    // Wait for database to be ready
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // 2. Create knowledge base for codebase
+    const kbResponse = await fetch(
+      `${mindsdbUrl}/api/projects/${mindsdbProject}/knowledge_bases`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ knowledge_base: { name: kbName } }),
+      }
+    );
+
+    if (!kbResponse.ok) {
+      const error = await kbResponse.text();
+      throw new Error(`Failed to create knowledge base: ${error}`);
+    }
+
+    // 3. Insert repository content into knowledge base
+    const insertResponse = await fetch(
+      `${mindsdbUrl}/api/projects/${mindsdbProject}/knowledge_bases/${kbName}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          knowledge_base: {
+            urls: [`https://github.com/${repository}`],
+            crawl_depth: 2,
+          },
+        }),
+      }
+    );
+
+    if (!insertResponse.ok) {
+      const error = await insertResponse.text();
+      throw new Error(`Failed to insert data into knowledge base: ${error}`);
+    }
+
+    // Wait for KB to process content
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // 4. Create agent with KB and cached GitHub tables
+    const agentResponse = await fetch(
+      `${mindsdbUrl}/api/projects/${mindsdbProject}/agents`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agent: {
+            name: agentName,
+            model: {
+              provider: "openai",
+              model_name: "gpt-4.1",
+              api_key: openaiApiKey,
+            },
+            data: {
+              knowledge_bases: [`${mindsdbProject}.${kbName}`],
+              tables: [
+                `${githubDb}.pull_requests`,
+                `${githubDb}.issues`,
+                `${githubDb}.commits`,
+                `${githubDb}.branches`,
+                `${githubDb}.files`,
+                `${githubDb}.contributors`,
+                `${githubDb}.comments`,
+                `${githubDb}.discussions`,
+                `${githubDb}.releases`,
+              ],
+            },
+            prompt_template: `
 You are Askora (askora.dev), an assistant analyzing the GitHub repository "${repository}".
 You can use:
 
@@ -95,9 +156,45 @@ You can use:
 
 Answer questions concisely and accurately in markdown.
 `,
-      },
-    }),
-  });
+          },
+        }),
+      }
+    );
 
-  return { kbName, githubDb, agentName };
+    if (!agentResponse.ok) {
+      const error = await agentResponse.text();
+      throw new Error(`Failed to create agent: ${error}`);
+    }
+
+    return { kbName, githubDb, agentName };
+  } catch (error) {
+    try {
+      await fetch(`${mindsdbUrl}/api/sql/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `DROP AGENT ${agentName};`,
+        }),
+      });
+
+      await fetch(`${mindsdbUrl}/api/sql/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `DROP KNOWLEDGE_BASE ${kbName};`,
+        }),
+      });
+
+      await fetch(`${mindsdbUrl}/api/sql/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `DROP DATABASE ${githubDb};`,
+        }),
+      });
+    } catch (cleanupError) {
+      console.error("Cleanup failed:", cleanupError);
+    }
+    throw error;
+  }
 }
