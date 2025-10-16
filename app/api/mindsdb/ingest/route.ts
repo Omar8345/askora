@@ -39,9 +39,15 @@ async function setupRepository(repository: string) {
   const mindsdbUrl = process.env.MINDSDB_URL || "http://127.0.0.1:47334";
   const mindsdbProject = process.env.MINDSDB_PROJECT || "mindsdb";
 
-  const kbName = `kb_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
-  const githubDb = `github_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
-  const agentName = `agent_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+  const kbName = `kb_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
+  const githubDb = `github_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
+  const agentName = `agent_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
 
   if (!openaiApiKey) throw new Error("OPENAI_API_KEY required");
 
@@ -62,6 +68,19 @@ async function setupRepository(repository: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ knowledge_base: { name: kbName } }),
   });
+
+  await fetch(
+    `${mindsdbUrl}/api/projects/${mindsdbProject}/knowledge_bases/${kbName}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        knowledge_base: {
+          urls: [`https://github.com/${repository}`],
+          crawl_depth: 2,
+        },
+      }),
+    }
+  );
 
   // 3. Create agent with KB and cached GitHub tables
   await fetch(`${mindsdbUrl}/api/projects/${mindsdbProject}/agents`, {
