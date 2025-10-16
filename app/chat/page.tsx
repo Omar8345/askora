@@ -10,6 +10,9 @@ import { useChat } from "@/hooks/use-chat";
 
 interface ChatPageProps {}
 
+const MIN_INPUT_HEIGHT = 24; // Minimum height in pixels for single-line input
+const MAX_INPUT_HEIGHT = 240; // Maximum height in pixels (~10 lines before scrolling)
+
 export default function ChatPage({}: ChatPageProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -147,7 +150,7 @@ export default function ChatPage({}: ChatPageProps) {
     setInput("");
 
     if (inputRef.current) {
-      inputRef.current.style.height = "24px";
+      inputRef.current.style.height = `${MIN_INPUT_HEIGHT}px`;
       inputRef.current.style.overflowY = "hidden";
     }
 
@@ -384,16 +387,16 @@ export default function ChatPage({}: ChatPageProps) {
                 rows={1}
                 placeholder="Ask me anything about this repository..."
                 style={{
-                  height: "24px",
-                  maxHeight: 240,
+                  height: `${MIN_INPUT_HEIGHT}px`,
+                  maxHeight: MAX_INPUT_HEIGHT,
                   overflowY: "hidden",
                 }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "24px";
-                  const newHeight = Math.min(target.scrollHeight, 240);
+                  target.style.height = `${MIN_INPUT_HEIGHT}px`;
+                  const newHeight = Math.min(target.scrollHeight, MAX_INPUT_HEIGHT);
                   target.style.height = newHeight + "px";
-                  target.style.overflowY = newHeight >= 240 ? "auto" : "hidden";
+                  target.style.overflowY = newHeight >= MAX_INPUT_HEIGHT ? "auto" : "hidden";
                 }}
               />
 
