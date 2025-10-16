@@ -2,20 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Send,
-  Loader2,
-  Bot,
-  User,
-  AlertCircle,
-} from "lucide-react";
+import { ArrowLeft, Send, Loader2, Bot, User, AlertCircle } from "lucide-react";
 import { AskoraIcon } from "@/components/askora-icon";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useChat } from "@/hooks/use-chat";
 
 interface ChatPageProps {}
+
+const MIN_INPUT_HEIGHT = 24; // Minimum height in pixels for single-line input
+const MAX_INPUT_HEIGHT = 240; // Maximum height in pixels (~10 lines before scrolling)
 
 export default function ChatPage({}: ChatPageProps) {
   const searchParams = useSearchParams();
@@ -111,10 +107,13 @@ export default function ChatPage({}: ChatPageProps) {
 
       if (
         urlObj &&
-        (urlObj.hostname === "github.com" || urlObj.hostname === "www.github.com")
+        (urlObj.hostname === "github.com" ||
+          urlObj.hostname === "www.github.com")
       ) {
         // Path should be like /owner/repo or /owner/repo/...
-        const repoPathMatch = urlObj.pathname.match(/^\/([^\/]+\/[^\/]+)(\/|$)/);
+        const repoPathMatch = urlObj.pathname.match(
+          /^\/([^\/]+\/[^\/]+)(\/|$)/
+        );
         return repoPathMatch ? repoPathMatch[1] : null;
       } else if (url.match(/^[^\/]+\/[^\/]+$/)) {
         // Accept plain user/repo as fallback
@@ -147,51 +146,64 @@ export default function ChatPage({}: ChatPageProps) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    const currentInput = input.trim();
+    setInput("");
+
+    if (inputRef.current) {
+      inputRef.current.style.height = `${MIN_INPUT_HEIGHT}px`;
+      inputRef.current.style.overflowY = "hidden";
+    }
+
     if (isDemoMode) {
-      await sendMessage(input.trim(), repo, true);
-      setInput("");
+      await sendMessage(currentInput, repo, true);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
       return;
     }
 
     const repoPath = extractRepoPath(repo);
     if (!repoPath) return;
 
-    await sendMessage(input.trim(), repoPath, false);
-    setInput("");
+    await sendMessage(currentInput, repoPath, false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   const formatMessage = (content: string) => {
-    return (
-      content
-        .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-          const language = lang || "text";
-          return `<pre class="bg-muted/50 border border-border rounded-md p-3 my-2 overflow-x-auto"><code class="text-sm font-mono language-${language}">${code.trim()}</code></pre>`;
-        })
-        .replace(
-          /`([^`]+)`/g,
-          '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>'
-        )
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(
-          /\[([^\]]+)\]\(([^)]+)\)/g,
-          '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#1A8596] hover:text-[#187a87] underline transition-colors">$1</a>'
-        )
-        .replace(/(^|\n)(?:• .+(?:\n|$))+/g, (match) => {
-          const trimmed = match.replace(/^\n+|\n+$/g, "");
-          const items = trimmed
-            .split("\n")
-            .filter((line) => /^•\s+/.test(line))
-            .map((line) =>
-              line.replace(
-                /^•\s+(.+)$/,
-                '<div class="flex items-center gap-2 my-1"><span class="text-[#1A8596] leading-none">•</span><span class="leading-relaxed">$1</span></div>'
-              )
+    const trimmedContent = content.trim();
+
+    return trimmedContent
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        const language = lang || "text";
+        return `<pre class="bg-muted/50 border border-border rounded-md p-3 my-2 overflow-x-auto"><code class="text-sm font-mono language-${language}">${code.trim()}</code></pre>`;
+      })
+      .replace(
+        /`([^`]+)`/g,
+        '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>'
+      )
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#1A8596] hover:text-[#187a87] underline transition-colors">$1</a>'
+      )
+      .replace(/(^|\n)(?:• .+(?:\n|$))+/g, (match) => {
+        const trimmed = match.replace(/^\n+|\n+$/g, "");
+        const items = trimmed
+          .split("\n")
+          .filter((line) => /^•\s+/.test(line))
+          .map((line) =>
+            line.replace(
+              /^•\s+(.+)$/,
+              '<div class="flex items-center gap-2 my-1"><span class="text-[#1A8596] leading-none">•</span><span class="leading-relaxed">$1</span></div>'
             )
-            .join("");
-          return `<div class="my-2">${items}</div>`;
-        })
-        .replace(/\n+/g, "<br />")
-    );
+          )
+          .join("");
+        return `<div class="my-2">${items}</div>`;
+      })
+      .replace(/\n{3,}/g, "<br /><br />") // Normalize 3+ consecutive newlines to a double break
+      .replace(/\n/g, "<br />"); // Replace single newlines with single break
   };
 
   if (isDigesting) {
@@ -358,8 +370,8 @@ export default function ChatPage({}: ChatPageProps) {
       {/* Input Area */}
       <div className="border-t border-border/50 bg-card/50 backdrop-blur-sm p-4">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 relative">
+          <div className="flex items-end gap-2">
+            <div className="flex items-end flex-1 bg-background/80 border border-border/40 rounded-3xl px-4 py-2.5 shadow-sm">
               <textarea
                 ref={inputRef as any}
                 value={input}
@@ -370,38 +382,40 @@ export default function ChatPage({}: ChatPageProps) {
                     handleSubmit(e as any);
                   }
                 }}
-                placeholder="Ask me anything about this repository..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#1A8596] transition resize-none min-h-[48px] max-h-32 scrollbar-hide"
+                className="flex-1 resize-none bg-transparent outline-none text-foreground text-base leading-6 px-0 py-0 scrollbar-hide"
                 disabled={isLoading}
                 rows={1}
+                placeholder="Ask me anything about this repository..."
                 style={{
-                  height: "auto",
-                  minHeight: "48px",
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
+                  height: `${MIN_INPUT_HEIGHT}px`,
+                  maxHeight: MAX_INPUT_HEIGHT,
+                  overflowY: "hidden",
                 }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height =
-                    Math.min(target.scrollHeight, 128) + "px";
+                  target.style.height = `${MIN_INPUT_HEIGHT}px`;
+                  const newHeight = Math.min(target.scrollHeight, MAX_INPUT_HEIGHT);
+                  target.style.height = newHeight + "px";
+                  target.style.overflowY = newHeight >= MAX_INPUT_HEIGHT ? "auto" : "hidden";
                 }}
               />
-              {isLoading && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              )}
+
+              <Button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                size="icon"
+                className="ml-2 h-8 w-8 rounded-full bg-background hover:bg-muted text-foreground p-0 flex items-center justify-center border-0 transition-colors cursor-pointer"
+                aria-label="Send message"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-foreground" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
             </div>
-            <Button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              size="lg"
-              className="bg-gradient-to-r from-[#7c3aed] via-[#f472b6] to-[#1A8596] text-white hover:from-[#6d28d9] hover:via-[#ec4899] hover:to-[#187a87] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg cursor-pointer self-end min-h-[48px] flex items-center justify-center rounded-lg border border-transparent"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
+
           <div className="text-xs text-muted-foreground mt-2 text-center">
             Press Enter to send, Shift+Enter for new line
           </div>
