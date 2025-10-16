@@ -202,7 +202,7 @@ export default function ChatPage({}: ChatPageProps) {
           .join("");
         return `<div class="my-2">${items}</div>`;
       })
-      .replace(/\n{3,}/g, "<br /><br />") // Replace 3+ consecutive newlines with double break
+      .replace(/\n{3,}/g, "<br /><br />") // Normalize 3+ consecutive newlines to a double break
       .replace(/\n/g, "<br />"); // Replace single newlines with single break
   };
 
