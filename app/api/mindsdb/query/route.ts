@@ -48,7 +48,9 @@ async function queryKnowledgeBase(
 ): Promise<string> {
   const mindsdbUrl = process.env.MINDSDB_URL || "http://127.0.0.1:47334";
   const mindsdbProject = process.env.MINDSDB_PROJECT || "mindsdb";
-  const agentName = `agent_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+  const agentName = `agent_${repository
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()}`;
 
   try {
     const messages = [
