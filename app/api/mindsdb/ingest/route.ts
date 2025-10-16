@@ -43,45 +43,90 @@ async function setupRepository(repository: string) {
   const githubDb = `github_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
   const agentName = `agent_${repository.replace(/[^a-zA-Z0-9_]/g, "_")}`;
 
-  if (!openaiApiKey) throw new Error("OPENAI_API_KEY required");
+  if (!openaiApiKey) {
+    throw new Error(
+      "OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable."
+    );
+  }
 
-  // 1. Create GitHub database connection
-  await fetch(`${mindsdbUrl}/api/sql/query`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `CREATE DATABASE ${githubDb} WITH ENGINE='github', PARAMETERS={"repository": "${repository}", "token": "${
-        process.env.GITHUB_TOKEN || ""
-      }"};`,
-    }),
-  });
+  // Check if agent already exists
+  try {
+    const checkAgent = await fetch(
+      `${mindsdbUrl}/api/projects/${mindsdbProject}/agents/${agentName}`,
+      { method: "GET" }
+    );
+    if (checkAgent.ok) {
+      // Agent already exists, return early
+      return { kbName, githubDb, agentName };
+    }
+  } catch (error) {
+    // Agent doesn't exist, continue with creation
+  }
 
-  // 2. Create knowledge base for codebase
-  await fetch(`${mindsdbUrl}/api/projects/${mindsdbProject}/knowledge_bases`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ knowledge_base: { name: kbName } }),
-  });
+  try {
+    // 1. Create GitHub database connection
+    const dbResponse = await fetch(`${mindsdbUrl}/api/sql/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `CREATE DATABASE IF NOT EXISTS ${githubDb} WITH ENGINE='github', PARAMETERS={"repository": "${repository}", "token": "${
+          process.env.GITHUB_TOKEN || ""
+        }"};`,
+      }),
+    });
+
+    if (!dbResponse.ok && dbResponse.status !== 409) {
+      // 409 means already exists, which is fine
+      throw new Error(`Failed to create GitHub database: ${await dbResponse.text()}`);
+    }
+
+    // 2. Create knowledge base for codebase
+    const kbResponse = await fetch(
+      `${mindsdbUrl}/api/projects/${mindsdbProject}/knowledge_bases`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ knowledge_base: { name: kbName } }),
+      }
+    );
+
+    if (!kbResponse.ok && kbResponse.status !== 409) {
+      // 409 means already exists, which is fine
+      const errorText = await kbResponse.text();
+      if (!errorText.includes("already exists")) {
+        throw new Error(`Failed to create knowledge base: ${errorText}`);
+      }
+    }
+  } catch (error) {
+    throw new Error(
+      `Failed to set up repository infrastructure: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
 
   // 3. Create agent with KB and cached GitHub tables
-  await fetch(`${mindsdbUrl}/api/projects/${mindsdbProject}/agents`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      agent: {
-        name: agentName,
-        model: {
-          provider: "openai",
-          model_name: "gpt-4-turbo-preview",
-          api_key: openaiApiKey,
-          temperature: 0.3, // Lower temperature for more focused, accurate responses
-          max_tokens: 2000, // Reasonable limit for detailed but concise responses
-          top_p: 0.9, // Focus on more likely tokens for better coherence
-        },
-        data: {
-          knowledge_bases: [`${mindsdbProject}.${kbName}`],
-        },
-        prompt_template: `
+  try {
+    const agentResponse = await fetch(
+      `${mindsdbUrl}/api/projects/${mindsdbProject}/agents`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agent: {
+            name: agentName,
+            model: {
+              provider: "openai",
+              model_name: "gpt-4-turbo-preview",
+              api_key: openaiApiKey,
+              temperature: 0.3, // Lower temperature for more focused, accurate responses
+              max_tokens: 2000, // Reasonable limit for detailed but concise responses
+              top_p: 0.9, // Focus on more likely tokens for better coherence
+            },
+            data: {
+              knowledge_bases: [`${mindsdbProject}.${kbName}`],
+            },
+            prompt_template: `
 You are Askora (askora.dev), an expert AI assistant specialized in analyzing the GitHub repository "${repository}".
 
 ## Your Capabilities:
@@ -116,9 +161,22 @@ You have access to comprehensive repository data:
 
 When you don't have enough information or the question is unclear, ask clarifying questions instead of making assumptions.
 `,
-      },
-    }),
-  });
+          },
+        }),
+      }
+    );
+
+    if (!agentResponse.ok) {
+      const errorText = await agentResponse.text();
+      throw new Error(`Failed to create agent: ${errorText}`);
+    }
+  } catch (error) {
+    throw new Error(
+      `Failed to create AI agent: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }. Please verify your OpenAI API key is valid and has sufficient credits.`
+    );
+  }
 
   return { kbName, githubDb, agentName };
 }
